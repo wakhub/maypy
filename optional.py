@@ -3,6 +3,7 @@ Optional type for Python
 
 """
 from functools import wraps
+import operator
 
 
 class Optional(object):
@@ -43,9 +44,7 @@ class Optional(object):
     >>> Optional('a') + Optional('b')
     <Optional ab>
     >>> Optional('a') + Optional(None)
-    Traceback (most recent call last):
-    ...
-    TypeError: cannot concatenate 'str' and 'NoneType' objects
+    <Optional None>
     >>> Optional('a') + Optional(None).or_('B')
     <Optional aB>
 
@@ -56,30 +55,31 @@ class Optional(object):
         self.__value = value
 
     def __repr__(self):
-        return '<Optional {}>'.format(self.__value)
+        return '<{} {}>'.format(self.__class__.__name__, self.__value)
 
     def __str__(self):
         return str(self.__value)
 
-    def __add__(self, other):
+    def __operation(self, operator_, other):
+        if not self.exists():
+            return Optional(None)
         if type(other) != Optional:
-            return Optional(self.__value + other)
-        return Optional(self.__value + other.__value)
+            return Optional(operator_(self.get(), other))
+        if not other.exists():
+            return Optional(None)
+        return Optional(operator_(self.get(), other.get()))
+
+    def __add__(self, other):
+        return self.__operation(operator.__add__, other)
 
     def __sub__(self, other):
-        if type(other) != Optional:
-            return Optional(self.__value - other)
-        return Optional(self.__value - other.__value)
+        return self.__operation(operator.__sub__, other)
 
     def __div__(self, other):
-        if type(other) != Optional:
-            return Optional(self.__value / other)
-        return Optional(self.__value / other.__value)
+        return self.__operation(operator.__div__, other)
 
     def __mul__(self, other):
-        if type(other) != Optional:
-            return Optional(self.__value * other)
-        return Optional(self.__value * other.__value)
+        return self.__operation(operator.__mul__, other)
 
     def __enter__(self):
         if not self.exists():
