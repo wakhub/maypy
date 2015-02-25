@@ -52,12 +52,23 @@ class Optional(object):
     <Optional None>
     >>> Optional('a') + Optional(None).or_('B')
     <Optional 'aB'>
+    >>> word1_ = Optional('Guido')
+    >>> word2_ = Optional('Van')
+    >>> word3_ = Optional('Rossum')
+    >>> (word1_ + word2_ + word3_).or_('Matz')
+    'GuidoVanRossum'
+    >>> word3_ = Optional(None)
+    >>> (word1_ + word2_ + word3_).or_('Matz')
+    'Matz'
 
     :param object value:
     """
 
     def __init__(self, value):
-        self.__value = value
+        if type(value) is Optional:
+            self.__value = value.get()
+        else:
+            self.__value = value
 
     def __repr__(self):
         value = self.__value
