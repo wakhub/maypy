@@ -4,6 +4,7 @@ Optional type for Python
 """
 from functools import wraps
 import operator
+import re
 
 
 class Optional(object):
@@ -42,11 +43,15 @@ class Optional(object):
     >>> opt1_ + opt1_, opt1_ - 100, opt1_ * 3, opt1_ / 3
     (<Optional 246>, <Optional 23>, <Optional 369>, <Optional 41>)
     >>> Optional('a') + Optional('b')
-    <Optional ab>
+    <Optional 'ab'>
+    >>> Optional('a') + 'b'
+    <Optional 'ab'>
     >>> Optional('a') + Optional(None)
     <Optional None>
+    >>> Optional('a') + None
+    <Optional None>
     >>> Optional('a') + Optional(None).or_('B')
-    <Optional aB>
+    <Optional 'aB'>
 
     :param object value:
     """
@@ -55,7 +60,10 @@ class Optional(object):
         self.__value = value
 
     def __repr__(self):
-        return '<{} {}>'.format(self.__class__.__name__, self.__value)
+        value = self.__value
+        if type(value) is str:
+            value = "'{}'".format(re.escape(value))
+        return '<{} {}>'.format(self.__class__.__name__, value)
 
     def __str__(self):
         return str(self.__value)
@@ -64,6 +72,8 @@ class Optional(object):
         if not self.exists():
             return Optional(None)
         if type(other) != Optional:
+            if other is None:
+                return Optional(None)
             return Optional(operator_(self.get(), other))
         if not other.exists():
             return Optional(None)

@@ -8,7 +8,7 @@ Optional type for Python
 Example
 =======
 
-::
+.. code-block:: python
 
     from optional import optional
     
