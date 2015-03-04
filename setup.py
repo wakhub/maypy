@@ -8,10 +8,10 @@ setup(
     version=maypy.__version__,
     author='wak',
     author_email='wkwkwk0111@gmail.com',
-    description="Maybe object for Python",
+    description='Maybe object for Python',
     license='MIT',
     keywords='optional maybe null',
     url='https://github.com/wakhub/maypy',
-    py_modules=['optional'],
+    py_modules=['maypy'],
     long_description=open('README.rst').read()
 )

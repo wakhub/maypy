@@ -3,53 +3,56 @@ import operator
 import re
 
 
-__version__ = '0.0.1'
+__version__ = '0.0.2'
 
 
 class Maybe(object):
     """ Maybe object
 
-    >>> maybe1_ = Maybe(123)
-    >>> maybe2_ = Maybe(None)
-    >>> maybe3_ = Maybe(['A', 'B', 'C'])
-    >>> maybe1_, maybe2_, maybe3_
+    >>> x_ = Maybe(123)
+    >>> y_ = Maybe(None)
+    >>> z_ = Maybe(['A', 'B', 'C'])
+    >>> x_, y_, z_
     (123?, None?, ['A', 'B', 'C']?)
-    >>> maybe1_.get(), maybe2_.get(), maybe3_.get()
-    (123, None, ['A', 'B', 'C'])
-    >>> maybe1_.exists(), maybe2_.exists(), maybe3_.exists()
-    (True, False, True)
-    >>> maybe1_.or_('ABC'), maybe2_.or_('ABC')
-    (123, 'ABC')
-    >>> maybe1_ == maybe2_
-    False
-    >>> maybe1_ == Maybe(123)
-    True
-    >>> maybe1_ == Maybe('123')
-    False
-    >>> with maybe1_ as maybe1:
-    ...     print(maybe1)
-    ...
+    >>> x_.get()
     123
-    >>> value = None
-    >>> try:
-    ...     with maybe2_ as maybe2:
-    ...         value = 'ABC'
-    ... except ValueError:
-    ...     value = 'DEF'
+    >>> y_.get()
+    Traceback (most recent call last):
     ...
-    >>> value
-    'DEF'
-    >>> maybex = Maybe(2)
-    >>> maybey = Maybe(3)
-    >>> maybez = Maybe(None)
-    >>> maybex + maybey
+    ValueError
+    >>> x_.exists(), y_.exists(), z_.exists()
+    (True, False, True)
+    >>> x_.or_('ABC'), y_.or_('ABC'), z_.or_('ABC')
+    (123, 'ABC', ['A', 'B', 'C'])
+    >>> x_ == y_
+    False
+    >>> x_ == Maybe(123)
+    True
+    >>> x_ == Maybe('123')
+    False
+
+
+    Operators
+
+    >>> x_ = Maybe(2)
+    >>> y_ = Maybe(3)
+    >>> z_ = Maybe(None)
+    >>> x_ + y_
     5?
-    >>> maybex - maybey
+    >>> x_ - y_
     -1?
-    >>> maybex + maybez
+    >>> x_ + y_ + z_
     <Nothing>
-    >>> (maybex + maybey + maybez).or_(100)
+    >>> (x_ + y_ + z_).get()
+    Traceback (most recent call last):
+    ...
+    ValueError
+    >>> (x_ + y_ + z_).or_(100)
     100
+    >>> x_ + 100
+    102?
+    >>> x_ + None
+    <Nothing>
 
     :param object value:
     """
@@ -69,17 +72,6 @@ class Maybe(object):
             value = "'{}'".format(re.escape(value))
         return '{}?'.format(value)
 
-    def __operation(self, operator_, other):
-        if not self.exists():
-            return Nothing()
-        if type(other) != Maybe:
-            if other is None:
-                return Nothing()
-            return Maybe(operator_(self.get(), other))
-        if not other.exists():
-            return Nothing()
-        return Maybe(operator_(self.get(), other.get()))
-
     def __add__(self, other):
         return self.__operation(operator.__add__, other)
 
@@ -92,18 +84,21 @@ class Maybe(object):
     def __mul__(self, other):
         return self.__operation(operator.__mul__, other)
 
-    def __enter__(self):
-        if not self.exists():
-            raise ValueError('value not exists')
-        return self.__value
-
-    def __exit__(self, type, value, tb):
-        pass
-
     def __eq__(self, other):
         if type(other) != Maybe:
             return False
         return self.__value == other.__value
+
+    def __operation(self, operator_, other):
+        if not self.exists():
+            return Nothing()
+        if type(other) != Maybe:
+            if other is None:
+                return Nothing()
+            return Maybe(operator_(self.get(), other))
+        if not other.exists():
+            return Nothing()
+        return Maybe(operator_(self.get(), other.get()))
 
     def get(self):
         """ Returns the value
@@ -111,7 +106,9 @@ class Maybe(object):
         :rtype: object
         :throws: ValueError
         """
-        return self.__value
+        if self.exists():
+            return self.__value
+        raise ValueError()
 
     def exists(self):
         """ Returns True if value exists
@@ -122,7 +119,6 @@ class Maybe(object):
 
     def or_(self, replacement):
         """ Return the value if value exists else replacement
-
         :param object replacement:
         :rtype: any
         """
@@ -130,7 +126,7 @@ class Maybe(object):
 
 
 class Nothing(Maybe):
-    """ Shortcut for Maybe(None) """
+    """ Alias of Maybe(None) """
 
     def __init__(self):
         super(Nothing, self).__init__(None)
@@ -164,7 +160,7 @@ def maybe(f):
 
 
 def not_none(f):
-    """ Decorator for rejecting None as return
+    """ Decorator for rejecting None as return value
 
     >>> @not_none
     ... def f(v):
@@ -177,13 +173,13 @@ def not_none(f):
     >>> f('invalid')
     Traceback (most recent call last):
     ...
-    ValueError: Return value has not to be None for @not_none
+    ValueError: Return value must not to be None for @not_none
     """
     @wraps(f)
     def wrapper(*args, **kwds):
         ret = f(*args, **kwds)
         if ret is None:
-            raise ValueError('Return value has not to be None for @not_none')
+            raise ValueError('Return value must not to be None for @not_none')
         return ret
     return wrapper
 

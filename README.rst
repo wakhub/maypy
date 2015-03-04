@@ -2,7 +2,7 @@
 maypy
 ============
 
-Maybe(or Optional) object for Python.
+Maybe(or Optional) object for Python which is inspired by `Guava <https://github.com/google/guava>`_
 
 
 Install
@@ -10,7 +10,7 @@ Install
 
 ::
 
-    $ pip install git+git://github.com/wakhub/maypy.git@master
+    $ pip install --upgrade -e git+git://github.com/wakhub/maypy.git@master
 
 
 Example
@@ -18,7 +18,7 @@ Example
 
 .. code:: python
 
-    from maypy import maybe, not_none
+    from maypy import maybe, not_none, Maybe
     
     @maybe
     def read_file(path):
@@ -43,13 +43,22 @@ Example
     sensitive_func('valid')  # Returns 'valid'
     sensitive_func('invalid')  # Raises ValueError
 
-    maybex = Maybe(2)
-    maybey = Maybe(3)
-    maybez = Maybe(None)
-    print(maybex + maybey)  # 5?
-    print(maybex - maybey)  # -1?
-    print(maybex + maybez)  # <Nothing>
-    print((maybex + maybez).or_(100))  # 100
+    x_ = Maybe(2)
+    y_ = Maybe(3)
+    z_ = Maybe(None)
+    print(x_ + y_)            # 5?
+    print(x_ - y_)            # -1?
+    print(x_ + z_)            # <Nothing>
+    print(x_ + z_).or_(100))  # 100
+    print(x_ + 100)           # 102?
+
+
+Tests
+======
+
+::
+
+    $ python -m doctest -v maypy.py
 
 
 References
