@@ -29,10 +29,8 @@ Example
             return None
 
     content_ = read_file("path/to/file.txt")
+    print(content_.get())  # Raises ValueError if content was None
     print(content_.or_("Not found"))
-
-    with content_ as content:  # Raises ValueError if content was None
-        print(content)
 
     @not_none
     def seisitive_func(v):
