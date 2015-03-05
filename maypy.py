@@ -3,7 +3,7 @@ import operator
 import re
 
 
-__version__ = '0.0.2'
+__version__ = '0.0.3'
 
 
 class Maybe(object):
@@ -58,7 +58,7 @@ class Maybe(object):
     """
 
     def __init__(self, value):
-        if type(value) is Maybe:
+        if isinstance(value, Maybe):
             self.__value = value.get()
         else:
             self.__value = value
@@ -68,7 +68,7 @@ class Maybe(object):
 
     def __str__(self):
         value = self.__value
-        if type(value) is str:
+        if isinstance(value, str):
             value = "'{}'".format(re.escape(value))
         return '{}?'.format(value)
 
@@ -85,9 +85,9 @@ class Maybe(object):
         return self.__operation(operator.__mul__, other)
 
     def __eq__(self, other):
-        if type(other) != Maybe:
-            return False
-        return self.__value == other.__value
+        if isinstance(other, Maybe):
+            return self.__value == other.__value
+        return self.__value == other
 
     def __operation(self, operator_, other):
         if not self.exists():
@@ -103,7 +103,7 @@ class Maybe(object):
     def get(self):
         """ Returns the value
 
-        :rtype: object
+        :rtype: any
         :throws: ValueError
         """
         if self.exists():
@@ -119,6 +119,7 @@ class Maybe(object):
 
     def or_(self, replacement):
         """ Return the value if value exists else replacement
+
         :param object replacement:
         :rtype: any
         """
@@ -182,6 +183,28 @@ def not_none(f):
             raise ValueError('Return value must not to be None for @not_none')
         return ret
     return wrapper
+
+
+class MaybeDict(object):
+    """ The dict wrapper
+
+    >>> d = MaybeDict({'a': 'AAA'})
+    >>> d['b'] = 'BBB'
+    >>> d['a'], d['b'], d['z']
+    ('AAA'?, 'BBB'?, <Nothing>)
+    """
+
+    def __init__(self, _dict):
+        self.__dict = _dict
+
+    def __getitem__(self, name):
+        try:
+            return Maybe(self.__dict[name])
+        except KeyError:
+            return Nothing()
+
+    def __setitem__(self, name, value):
+        self.__dict[name] = value
 
 
 if __name__ == '__main__':
